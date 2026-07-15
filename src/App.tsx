@@ -141,6 +141,24 @@ export default function App() {
         ? 'nepoflix, nepoflix stream, nepoflix movie player, free movies, stream tv shows, cyan glassmorphism player, secure stream, responsive video'
         : 'nepu, nepu stream, nepu movie player, free movies, stream tv shows, pinkish glassmorphism player, vidking premium, responsive bottom bar, clean typography'
     );
+
+    // Dynamic high-performance favicon for both brands!
+    let linkIcon = document.querySelector('link[rel~="icon"]') as HTMLLinkElement | null;
+    if (!linkIcon) {
+      linkIcon = document.createElement('link');
+      linkIcon.setAttribute('rel', 'icon');
+      linkIcon.setAttribute('type', 'image/svg+xml');
+      document.head.appendChild(linkIcon);
+    }
+    const nepuSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="50%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="url(#g)" text-anchor="middle">N</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs></svg>`;
+    const nepoflixSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="51%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="url(#g)" text-anchor="middle" letter-spacing="-1">NF</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs></svg>`;
+
+    try {
+      const base64Svg = btoa(unescape(encodeURIComponent(isNepoflix ? nepoflixSvg : nepuSvg)));
+      linkIcon.setAttribute('href', `data:image/svg+xml;base64,${base64Svg}`);
+    } catch (e) {
+      console.error('Error generating dynamic favicon:', e);
+    }
   }, [activeTab, selectedMedia, searchQuery, isNepoflix]);
 
   // Fetch collections on Mount
