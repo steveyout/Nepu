@@ -8,7 +8,7 @@ import { mockMovies, mockShows, mockAll, getMockCast, getMockVideos, getMockSeas
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const TMDB_API_KEY = process.env.TMDB_API_KEY || '';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 
