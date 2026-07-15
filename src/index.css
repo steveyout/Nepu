@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+:root {
+  --theme-brand-pink: #f43f5e;
+  --theme-brand-magenta: #ec4899;
+  --theme-brand-violet: #d946ef;
+  --theme-glow-color: rgba(244, 63, 94, 0.45);
+  --theme-glow-color-text: rgba(244, 63, 94, 0.6);
+  --theme-gradient-start: #f43f5e;
+  --theme-gradient-mid: #ec4899;
+  --theme-gradient-end: #d946ef;
+  --theme-immersive-grad-end: #c084fc;
+  --theme-immersive-active-bg: rgba(219, 39, 119, 0.3);
+  --theme-immersive-active-border: rgba(219, 39, 119, 0.35);
+  --theme-immersive-active-shadow: rgba(219, 39, 119, 0.12);
+}
+
+/* Nepoflix Theme - Dynamic Indigo/Teal/Cyan neon aesthetic */
+.nepoflix-theme {
+  --theme-brand-pink: #06b6d4;      /* cyan-500 */
+  --theme-brand-magenta: #0ea5e9;   /* sky-500 */
+  --theme-brand-violet: #6366f1;    /* indigo-500 */
+  --theme-glow-color: rgba(6, 182, 212, 0.45);
+  --theme-glow-color-text: rgba(6, 182, 212, 0.6);
+  --theme-gradient-start: #06b6d4;
+  --theme-gradient-mid: #0ea5e9;
+  --theme-gradient-end: #6366f1;
+  --theme-immersive-grad-end: #818cf8;
+  --theme-immersive-active-bg: rgba(6, 182, 212, 0.2);
+  --theme-immersive-active-border: rgba(6, 182, 212, 0.35);
+  --theme-immersive-active-shadow: rgba(6, 182, 212, 0.12);
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  
+  --color-brand-pink: var(--theme-brand-pink);
+  --color-brand-magenta: var(--theme-brand-magenta);
+  --color-brand-violet: var(--theme-brand-violet);
+}
+
+@utility glass-dark {
+  background-color: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@utility glass-light {
+  background-color: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(244, 63, 94, 0.1);
+}
+
+@utility text-glow-pink {
+  text-shadow: 0 0 12px var(--theme-glow-color-text), 0 0 2px rgba(244, 63, 94, 0.3);
+}
+
+@utility bg-pink-gradient {
+  background-image: linear-gradient(135deg, var(--theme-gradient-start) 0%, var(--theme-gradient-mid) 50%, var(--theme-gradient-end) 100%);
+}
+
+@utility bg-pink-glow {
+  box-shadow: 0 0 25px var(--theme-glow-color);
+}
+
+/* Immersive UI Specific presets */
+.immersive-gradient-text {
+  background: linear-gradient(to right, var(--theme-brand-magenta), var(--theme-immersive-grad-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.immersive-active-item {
+  background: linear-gradient(90deg, var(--theme-immersive-active-bg) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid var(--theme-immersive-active-border) !important;
+  box-shadow: 0 0 15px var(--theme-immersive-active-shadow);
+}
+
+.glowing-pink-dot {
+  background-color: var(--theme-brand-magenta);
+  box-shadow: 0 0 10px var(--theme-brand-magenta), 0 0 20px var(--theme-glow-color);
+}
+
+/* Standard CSS scrollbar hiding compatible with Tailwind CSS v4 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

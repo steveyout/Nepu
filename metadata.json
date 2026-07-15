@@ -1,0 +1,6 @@
+{
+  "name": "nepu",
+  "description": "nepu is a sleek, fast, and mobile-responsive movie streaming client designed with elegant glassmorphism effects and soft pink gradients.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
