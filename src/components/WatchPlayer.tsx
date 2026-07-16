@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Star, Clock, Server, Play, ChevronDown, ListVideo, Users, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
 import { MediaItem, Episode, SeasonDetails, CastMember, VideoItem } from '../types';
@@ -51,6 +51,21 @@ export default function WatchPlayer({
   const [loadingEpisodes, setLoadingEpisodes] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'episodes' | 'cast' | 'recs'>('episodes');
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isSeasonDropdownOpen, setIsSeasonDropdownOpen] = useState<boolean>(false);
+  const seasonDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Click outside listener for season selector
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (seasonDropdownRef.current && !seasonDropdownRef.current.contains(event.target as Node)) {
+        setIsSeasonDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Set default tab based on type
   useEffect(() => {
@@ -451,24 +466,59 @@ export default function WatchPlayer({
                     exit={{ opacity: 0, y: -10 }}
                     className="flex flex-col gap-3"
                   >
-                    {/* Season Dropdown Selector */}
-                    {item.number_of_seasons && item.number_of_seasons > 1 ? (
-                      <div className="relative mb-2">
-                        <select
-                          value={currentSeason}
-                          onChange={(e) => {
-                            setCurrentSeason(Number(e.target.value));
-                            setCurrentEpisode(1);
-                          }}
-                          className="w-full appearance-none px-4 py-2 text-xs font-semibold rounded-xl bg-neutral-900 border border-neutral-800 text-white focus:border-brand-pink/40 outline-none cursor-pointer"
+                    {/* Perfect Custom Season Selector Dropdown */}
+                    {(item.number_of_seasons || 1) >= 1 ? (
+                      <div ref={seasonDropdownRef} className="relative mb-3.5 z-30">
+                        <button
+                          type="button"
+                          id="btn-season-dropdown-toggle"
+                          onClick={() => setIsSeasonDropdownOpen(!isSeasonDropdownOpen)}
+                          className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold rounded-xl bg-neutral-900 border border-neutral-800 text-white hover:border-brand-pink/50 focus:border-brand-pink/60 transition-all duration-200 outline-none cursor-pointer"
                         >
-                          {Array.from({ length: item.number_of_seasons }).map((_, idx) => (
-                            <option key={idx + 1} value={idx + 1}>
-                              Season {idx + 1}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-3.5 top-2.5 w-4 h-4 text-neutral-400 pointer-events-none" />
+                          <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand-pink animate-pulse" />
+                            <span>Season {currentSeason}</span>
+                          </div>
+                          <ChevronDown className={`w-4 h-4 text-neutral-400 transition-transform duration-300 ${isSeasonDropdownOpen ? 'rotate-180 text-brand-pink' : ''}`} />
+                        </button>
+
+                        <AnimatePresence>
+                          {isSeasonDropdownOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                              animate={{ opacity: 1, y: 4, scale: 1 }}
+                              exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                              transition={{ duration: 0.15, ease: 'easeOut' }}
+                              className="absolute left-0 right-0 top-full bg-neutral-900/95 backdrop-blur-xl border border-neutral-800 rounded-2xl shadow-2xl p-1.5 max-h-56 overflow-y-auto overflow-x-hidden thin-scrollbar z-50 flex flex-col gap-1"
+                            >
+                              {Array.from({ length: item.number_of_seasons || 1 }).map((_, idx) => {
+                                const sNum = idx + 1;
+                                const isSelected = sNum === currentSeason;
+                                return (
+                                  <button
+                                    key={sNum}
+                                    type="button"
+                                    onClick={() => {
+                                      setCurrentSeason(sNum);
+                                      setCurrentEpisode(1);
+                                      setIsSeasonDropdownOpen(false);
+                                    }}
+                                    className={`w-full text-left px-3.5 py-2.5 text-xs font-semibold rounded-xl flex items-center justify-between transition-all cursor-pointer ${
+                                      isSelected
+                                        ? 'bg-brand-pink/15 text-brand-pink font-bold border border-brand-pink/20'
+                                        : 'text-neutral-300 hover:bg-white/5 hover:text-white border border-transparent'
+                                    }`}
+                                  >
+                                    <span>Season {sNum}</span>
+                                    {isSelected && (
+                                      <div className="w-1.5 h-1.5 rounded-full bg-brand-pink shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     ) : null}
 
