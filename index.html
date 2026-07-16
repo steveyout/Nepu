@@ -3,15 +3,49 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>nepu - Sleek Glassmorphic Movie & TV Streaming</title>
+    <title>nepu – Watch Free Movies & TV Shows in High Quality</title>
     
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RQTT2RYDQ7"></script>
+    <!-- Robust fix for "Cannot set property fetch of #<Window> which has only a getter" -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-RQTT2RYDQ7');
+      (function() {
+        try {
+          const originalFetch = window.fetch;
+          let currentFetch = originalFetch;
+          Object.defineProperty(window, 'fetch', {
+            get: function() {
+              return currentFetch;
+            },
+            set: function(val) {
+              currentFetch = val;
+            },
+            configurable: true,
+            enumerable: true
+          });
+        } catch (e) {
+          console.warn('Unable to patch window.fetch property descriptor:', e);
+        }
+      })();
+    </script>
+    
+    <!-- Dynamically load Google Analytics only on production domains -->
+    <script>
+      (function() {
+        const prodDomains = ['nepu.live', 'nepoflix.site'];
+        const isProd = prodDomains.some(function(domain) {
+          return window.location.hostname.includes(domain);
+        });
+        if (isProd) {
+          const gTagScript = document.createElement('script');
+          gTagScript.async = true;
+          gTagScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-RQTT2RYDQ7';
+          document.head.appendChild(gTagScript);
+
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = function() { window.dataLayer.push(arguments); };
+          window.gtag('js', new Date());
+          window.gtag('config', 'G-RQTT2RYDQ7');
+        }
+      })();
     </script>
     
     <!-- Speed & Performance optimizations: Preconnect to image servers -->
@@ -22,7 +56,7 @@
     <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
     
     <!-- Primary Metadata -->
-    <meta name="description" content="nepu is an elegant, mobile-responsive, lightning-fast movie streaming client designed with gorgeous glassmorphism effects and soft pink gradients." />
+    <meta name="description" content="nepu – Stream HD movies and TV shows for free, ad-free, and no subscriptions needed. Enjoy endless entertainment instantly!" />
     <meta name="robots" content="index, follow" />
     <meta name="keywords" content="nepu, nepu stream, nepu movie player, free movies, stream tv shows, pinkish glassmorphism player, vidking premium, responsive bottom bar, clean typography" />
   </head>

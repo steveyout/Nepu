@@ -95,11 +95,11 @@ export default function App() {
     const brandName = isNepoflix ? 'nepoflix' : 'nepu';
     const brandDesc = isNepoflix 
       ? 'nepoflix is a sleek, modern, lightning-fast streaming site featuring cyan glassmorphism, dynamic servers, and robust search indices.'
-      : 'nepu is an elegant, mobile-responsive, lightning-fast movie streaming client featuring elegant pink gradients, sitemaps, and full search indexing.';
+      : 'nepu – Stream HD movies and TV shows for free, ad-free, and no subscriptions needed. Enjoy endless entertainment instantly!';
 
     let titleText = isNepoflix
       ? 'nepoflix - Premium Glassmorphic Movie & TV Streaming'
-      : 'nepu - Sleek Glassmorphic Movie & TV Streaming';
+      : 'nepu – Watch Free Movies & TV Shows in High Quality';
     let descText = brandDesc;
 
     if (activeTab === 'player' && selectedMedia) {
