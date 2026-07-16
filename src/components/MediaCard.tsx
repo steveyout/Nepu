@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Star, Play, Bookmark, BookmarkCheck } from 'lucide-react';
+import { Star, Play, Bookmark, BookmarkCheck, Share2, Check } from 'lucide-react';
 import { MediaItem } from '../types';
 
 interface MediaCardProps {
@@ -19,7 +19,42 @@ export default function MediaCard({
   onToggleSave,
   onSelect,
 }: MediaCardProps) {
+  const [copied, setCopied] = useState(false);
   const isMovie = item.media_type === 'movie';
+
+  const isNepoflix = typeof window !== 'undefined' && (
+    window.location.hostname.includes('nepoflix') || 
+    window.location.search.includes('brand=nepoflix')
+  );
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const mediaTitle = item.title || item.name;
+    const shareUrl = `${window.location.origin}${window.location.pathname}?brand=${isNepoflix ? 'nepoflix' : 'nepu'}&id=${item.id}&type=${item.media_type}`;
+    const shareData = {
+      title: mediaTitle,
+      text: `Check out ${mediaTitle} on ${isNepoflix ? 'nepoflix' : 'nepu'}!`,
+      url: shareUrl,
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Error copying link:', err);
+      }
+    }
+  };
+
   const releaseYear = item.release_date
     ? item.release_date.substring(0, 4)
     : item.first_air_date
@@ -94,19 +129,42 @@ export default function MediaCard({
           </div>
         )}
 
-        {/* Floating Quick Action: Bookmark */}
-        <button
-          id={`btn-card-bookmark-${item.id}`}
-          onClick={(e) => onToggleSave(e, item)}
-          className="absolute top-2.5 right-2.5 p-2 rounded-full glass-dark text-white border border-white/10 hover:bg-brand-pink/20 hover:text-brand-pink transition-all active:scale-95 z-20"
-          title={isSaved ? 'Remove from Space' : 'Add to Space'}
-        >
-          {isSaved ? (
-            <BookmarkCheck className="w-3.5 h-3.5 text-brand-pink fill-brand-pink" />
-          ) : (
-            <Bookmark className="w-3.5 h-3.5 text-white/90" />
-          )}
-        </button>
+        {/* Floating Quick Actions */}
+        <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-20">
+          {/* Share Button */}
+          <button
+            id={`btn-card-share-${item.id}`}
+            onClick={handleShare}
+            className="p-2 rounded-full glass-dark text-white border border-white/10 hover:bg-brand-pink/20 hover:text-brand-pink transition-all active:scale-95 relative group/share-btn"
+            title="Share Media"
+          >
+            {copied ? (
+              <Check className="w-3.5 h-3.5 text-emerald-400" />
+            ) : (
+              <Share2 className="w-3.5 h-3.5 text-white/90 group-hover/share-btn:text-brand-pink" />
+            )}
+            
+            {copied && (
+              <span className="absolute -bottom-8 right-0 bg-neutral-950 text-[9px] font-mono font-bold text-emerald-400 px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap border border-emerald-500/20">
+                Copied Link!
+              </span>
+            )}
+          </button>
+
+          {/* Bookmark Button */}
+          <button
+            id={`btn-card-bookmark-${item.id}`}
+            onClick={(e) => onToggleSave(e, item)}
+            className="p-2 rounded-full glass-dark text-white border border-white/10 hover:bg-brand-pink/20 hover:text-brand-pink transition-all active:scale-95"
+            title={isSaved ? 'Remove from Space' : 'Add to Space'}
+          >
+            {isSaved ? (
+              <BookmarkCheck className="w-3.5 h-3.5 text-brand-pink fill-brand-pink" />
+            ) : (
+              <Bookmark className="w-3.5 h-3.5 text-white/90" />
+            )}
+          </button>
+        </div>
 
         {/* Media Type pill on bottom */}
         <div className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md text-[9px] font-bold tracking-widest font-mono uppercase bg-neutral-950/80 text-white border border-white/5">
