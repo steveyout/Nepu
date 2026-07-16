@@ -301,18 +301,23 @@ app.get('/api/tv/:id/season/:season_number', async (req, res) => {
 app.get('/sitemap.xml', (req, res) => {
   res.header('Content-Type', 'application/xml');
   
+  // Dynamically switch to visited domain from request
+  const host = req.get('host') || 'localhost:3000';
+  const protocol = req.secure || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+  const dynamicDomain = `${protocol}://${host}`;
+  
   // Base URLs
   const urls = [
-    { loc: `${APP_URL}/`, changefreq: 'daily', priority: '1.0' },
-    { loc: `${APP_URL}/movies`, changefreq: 'weekly', priority: '0.8' },
-    { loc: `${APP_URL}/shows`, changefreq: 'weekly', priority: '0.8' },
-    { loc: `${APP_URL}/saved`, changefreq: 'daily', priority: '0.7' },
+    { loc: `${dynamicDomain}/`, changefreq: 'daily', priority: '1.0' },
+    { loc: `${dynamicDomain}/movies`, changefreq: 'weekly', priority: '0.8' },
+    { loc: `${dynamicDomain}/shows`, changefreq: 'weekly', priority: '0.8' },
+    { loc: `${dynamicDomain}/saved`, changefreq: 'daily', priority: '0.7' },
   ];
 
   // Add the trending mock movies for SEO coverage
   mockAll.forEach((item) => {
     urls.push({
-      loc: `${APP_URL}/watch/${item.media_type}/${item.id}`,
+      loc: `${dynamicDomain}/watch/${item.media_type}/${item.id}`,
       changefreq: 'monthly',
       priority: '0.6',
     });

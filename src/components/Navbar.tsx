@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { Film, Tv, Bookmark, Search, Sun, Moon, Sparkles } from 'lucide-react';
+import { getBrand, getBrandConfig } from '../utils/brand';
 
 interface NavbarProps {
   activeTab: string;
@@ -25,7 +26,8 @@ export default function Navbar({
     { id: 'saved', label: 'My Space', icon: Bookmark },
   ];
 
-  const isNepoflix = typeof window !== 'undefined' && (window.location.hostname.includes('nepoflix') || window.location.search.includes('brand=nepoflix'));
+  const brand = getBrand();
+  const brandConfig = getBrandConfig(brand);
 
   return (
     <header
@@ -47,10 +49,10 @@ export default function Navbar({
           transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
           className="w-9 h-9 rounded-xl bg-pink-gradient flex items-center justify-center text-white font-extrabold bg-pink-glow text-lg"
         >
-          {isNepoflix ? 'NF' : 'N'}
+          {brandConfig.shortName}
         </motion.div>
         <h1 className="font-display text-2xl font-black tracking-tighter bg-gradient-to-r from-brand-pink to-brand-violet bg-clip-text text-transparent text-glow-pink">
-          {isNepoflix ? 'NEPOFLIX' : 'NEPU'}
+          {brandConfig.name.toUpperCase()}
         </h1>
       </div>
 

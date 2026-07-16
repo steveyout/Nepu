@@ -8,6 +8,7 @@ import FeaturedHero from './components/FeaturedHero';
 import MediaSlider from './components/MediaSlider';
 import MediaCard from './components/MediaCard';
 import WatchPlayer from './components/WatchPlayer';
+import { getBrand, getBrandConfig } from './utils/brand';
 
 const GENRES_MAP: Record<number, string> = {
   12: 'Adventure',
@@ -29,11 +30,9 @@ export default function App() {
     return (localStorage.getItem('nepu_theme') as 'dark' | 'light') || 'dark';
   });
 
-  // Dynamic domain and brand detection for nepoflix.site
-  const isNepoflix = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return window.location.hostname.includes('nepoflix') || window.location.search.includes('brand=nepoflix');
-  }, []);
+  // Dynamic domain and brand detection for nepu, cineby, and nepoflix
+  const brand = useMemo(() => getBrand(), []);
+  const brandConfig = useMemo(() => getBrandConfig(brand), [brand]);
 
   // Media Collections
   const [trendingList, setTrendingList] = useState<MediaItem[]>([]);
@@ -90,16 +89,12 @@ export default function App() {
   }, [watchProgressList]);
 
   // Implement Dynamic SEO tags dynamically in React!
-  // This satisfies: "implement seo and a sitemap and name the site nepu" (and nepoflix for nepoflix.site)
+  // This satisfies: "implement seo and a sitemap and name the site nepu" (and nepoflix for nepoflix.site and cineby)
   useEffect(() => {
-    const brandName = isNepoflix ? 'nepoflix' : 'nepu';
-    const brandDesc = isNepoflix 
-      ? 'nepoflix is a sleek, modern, lightning-fast streaming site featuring cyan glassmorphism, dynamic servers, and robust search indices.'
-      : 'nepu – Stream HD movies and TV shows for free, ad-free, and no subscriptions needed. Enjoy endless entertainment instantly!';
+    const brandName = brandConfig.name;
+    const brandDesc = brandConfig.desc;
 
-    let titleText = isNepoflix
-      ? 'nepoflix - Premium Glassmorphic Movie & TV Streaming'
-      : 'nepu – Watch Free Movies & TV Shows in High Quality';
+    let titleText = brandConfig.tagline;
     let descText = brandDesc;
 
     if (activeTab === 'player' && selectedMedia) {
@@ -135,14 +130,9 @@ export default function App() {
       metaKeywords.setAttribute('name', 'keywords');
       document.head.appendChild(metaKeywords);
     }
-    metaKeywords.setAttribute(
-      'content',
-      isNepoflix
-        ? 'nepoflix, nepoflix stream, nepoflix movie player, free movies, stream tv shows, cyan glassmorphism player, secure stream, responsive video'
-        : 'nepu, nepu stream, nepu movie player, free movies, stream tv shows, pinkish glassmorphism player, vidking premium, responsive bottom bar, clean typography'
-    );
+    metaKeywords.setAttribute('content', brandConfig.keywords);
 
-    // Dynamic high-performance favicon for both brands!
+    // Dynamic high-performance favicon for all brands!
     let linkIcon = document.querySelector('link[rel~="icon"]') as HTMLLinkElement | null;
     if (!linkIcon) {
       linkIcon = document.createElement('link');
@@ -152,14 +142,17 @@ export default function App() {
     }
     const nepuSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="50%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="url(#g)" text-anchor="middle">N</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs></svg>`;
     const nepoflixSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="51%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="url(#g)" text-anchor="middle" letter-spacing="-1">NF</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs></svg>`;
+    const cinebySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="50%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="url(#g)" text-anchor="middle">C</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#ea580c"/></linearGradient></defs></svg>`;
+
+    const selectedSvg = brand === 'nepoflix' ? nepoflixSvg : brand === 'cineby' ? cinebySvg : nepuSvg;
 
     try {
-      const base64Svg = btoa(unescape(encodeURIComponent(isNepoflix ? nepoflixSvg : nepuSvg)));
+      const base64Svg = btoa(unescape(encodeURIComponent(selectedSvg)));
       linkIcon.setAttribute('href', `data:image/svg+xml;base64,${base64Svg}`);
     } catch (e) {
       console.error('Error generating dynamic favicon:', e);
     }
-  }, [activeTab, selectedMedia, searchQuery, isNepoflix]);
+  }, [activeTab, selectedMedia, searchQuery, brand, brandConfig]);
 
   // Fetch collections on Mount
   useEffect(() => {
@@ -326,15 +319,21 @@ export default function App() {
 
   const bgThemeClass =
     theme === 'dark'
-      ? `bg-[#050505] text-white min-h-screen relative overflow-x-hidden font-sans selection:bg-rose-500/30 ${isNepoflix ? 'nepoflix-theme' : ''}`
-      : `bg-[#fafafa] text-neutral-900 min-h-screen relative overflow-x-hidden font-sans selection:bg-rose-500/20 ${isNepoflix ? 'nepoflix-theme' : ''}`;
+      ? `bg-[#050505] text-white min-h-screen relative overflow-x-hidden font-sans selection:bg-rose-500/30 ${brand === 'nepoflix' ? 'nepoflix-theme' : brand === 'cineby' ? 'cineby-theme' : ''}`
+      : `bg-[#fafafa] text-neutral-900 min-h-screen relative overflow-x-hidden font-sans selection:bg-rose-500/20 ${brand === 'nepoflix' ? 'nepoflix-theme' : brand === 'cineby' ? 'cineby-theme' : ''}`;
 
   return (
     <div id="nepu-app-container" className={bgThemeClass}>
-      {/* Visual background ambient pink & purple glowing blobs matching Immersive UI spec */}
-      <div className={`absolute top-[-200px] left-[-200px] w-[600px] h-[600px] ${isNepoflix ? 'bg-cyan-600/20' : 'bg-pink-600/20'} rounded-full blur-[120px] pointer-events-none z-0`} />
-      <div className={`absolute bottom-[-100px] right-[-100px] w-[500px] h-[500px] ${isNepoflix ? 'bg-indigo-900/30' : 'bg-purple-900/30'} rounded-full blur-[100px] pointer-events-none z-0`} />
-      <div className={`absolute top-[40%] left-[50%] w-[450px] h-[450px] ${isNepoflix ? 'bg-cyan-900/10' : 'bg-pink-900/10'} rounded-full blur-[110px] pointer-events-none z-0`} />
+      {/* Visual background ambient glowing blobs matching dynamic brand theme */}
+      <div className={`absolute top-[-200px] left-[-200px] w-[600px] h-[600px] ${
+        brand === 'nepoflix' ? 'bg-cyan-600/20' : brand === 'cineby' ? 'bg-amber-600/25' : 'bg-pink-600/20'
+      } rounded-full blur-[120px] pointer-events-none z-0`} />
+      <div className={`absolute bottom-[-100px] right-[-100px] w-[500px] h-[500px] ${
+        brand === 'nepoflix' ? 'bg-indigo-900/30' : brand === 'cineby' ? 'bg-orange-950/40' : 'bg-purple-900/30'
+      } rounded-full blur-[100px] pointer-events-none z-0`} />
+      <div className={`absolute top-[40%] left-[50%] w-[450px] h-[450px] ${
+        brand === 'nepoflix' ? 'bg-cyan-900/10' : brand === 'cineby' ? 'bg-amber-900/15' : 'bg-pink-900/10'
+      } rounded-full blur-[110px] pointer-events-none z-0`} />
 
       {/* Main Glassmorphic Sticky Header */}
       <Navbar

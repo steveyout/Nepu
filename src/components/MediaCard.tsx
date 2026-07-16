@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Star, Play, Bookmark, BookmarkCheck, Share2, Check } from 'lucide-react';
 import { MediaItem } from '../types';
+import { getBrand, getBrandConfig } from '../utils/brand';
 
 interface MediaCardProps {
   key?: React.Key;
@@ -22,18 +23,16 @@ export default function MediaCard({
   const [copied, setCopied] = useState(false);
   const isMovie = item.media_type === 'movie';
 
-  const isNepoflix = typeof window !== 'undefined' && (
-    window.location.hostname.includes('nepoflix') || 
-    window.location.search.includes('brand=nepoflix')
-  );
+  const brand = getBrand();
+  const brandConfig = getBrandConfig(brand);
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const mediaTitle = item.title || item.name;
-    const shareUrl = `${window.location.origin}${window.location.pathname}?brand=${isNepoflix ? 'nepoflix' : 'nepu'}&id=${item.id}&type=${item.media_type}`;
+    const shareUrl = `${window.location.origin}${window.location.pathname}?brand=${brand}&id=${item.id}&type=${item.media_type}`;
     const shareData = {
       title: mediaTitle,
-      text: `Check out ${mediaTitle} on ${isNepoflix ? 'nepoflix' : 'nepu'}!`,
+      text: `Check out ${mediaTitle} on ${brandConfig.name}!`,
       url: shareUrl,
     };
 

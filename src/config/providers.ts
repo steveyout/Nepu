@@ -1,3 +1,5 @@
+import { getBrand, getBrandConfig } from '../utils/brand';
+
 export interface Provider {
   id: string;
   name: string;
@@ -86,8 +88,9 @@ export const getEmbedUrl = (
   if (!selected) return '';
 
   if (selected.id === 'cinemaos') {
-    const isNepoflix = typeof window !== 'undefined' && (window.location.hostname.includes('nepoflix') || window.location.search.includes('brand=nepoflix'));
-    const themeColor = isNepoflix ? '06b6d4' : 'f43f5e';
+    const brand = getBrand();
+    const brandConfig = getBrandConfig(brand);
+    const themeColor = brandConfig.themeColor;
     let url = "";
     if (type === 'movie') {
       url = `${selected.baseUrl}/player/${tmdbId}?theme=${themeColor}&autoPlay=true&autoNext=true&nextButton=true`;
