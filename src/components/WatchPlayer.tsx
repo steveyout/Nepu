@@ -41,6 +41,7 @@ export default function WatchPlayer({
   const [currentEpisodeName, setCurrentEpisodeName] = useState<string>('');
   
   const [details, setDetails] = useState<{
+    info?: MediaItem;
     cast: CastMember[];
     videos: VideoItem[];
     recommendations: MediaItem[];
@@ -54,7 +55,7 @@ export default function WatchPlayer({
   const [isSeasonDropdownOpen, setIsSeasonDropdownOpen] = useState<boolean>(false);
   const seasonDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Click outside listener for season selector
+  // Click outside listener for season selector dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (seasonDropdownRef.current && !seasonDropdownRef.current.contains(event.target as Node)) {
@@ -82,6 +83,7 @@ export default function WatchPlayer({
       .then((data) => {
         if (active) {
           setDetails({
+            info: data.info || null,
             cast: data.cast || [],
             videos: data.videos || [],
             recommendations: data.recommendations || [],
@@ -456,7 +458,7 @@ export default function WatchPlayer({
             </div>
 
             {/* Tab content bodies */}
-            <div className="p-4 flex-1 overflow-y-auto max-h-[480px]">
+            <div className={`p-4 flex-1 max-h-[480px] transition-all duration-200 ${isSeasonDropdownOpen ? 'overflow-visible' : 'overflow-y-auto'}`}>
               <AnimatePresence mode="wait">
                 {activeTab === 'episodes' && !isMovie && (
                   <motion.div
@@ -467,60 +469,68 @@ export default function WatchPlayer({
                     className="flex flex-col gap-3"
                   >
                     {/* Perfect Custom Season Selector Dropdown */}
-                    {(item.number_of_seasons || 1) >= 1 ? (
-                      <div ref={seasonDropdownRef} className="relative mb-3.5 z-30">
-                        <button
-                          type="button"
-                          id="btn-season-dropdown-toggle"
-                          onClick={() => setIsSeasonDropdownOpen(!isSeasonDropdownOpen)}
-                          className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold rounded-xl bg-neutral-900 border border-neutral-800 text-white hover:border-brand-pink/50 focus:border-brand-pink/60 transition-all duration-200 outline-none cursor-pointer"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand-pink animate-pulse" />
-                            <span>Season {currentSeason}</span>
-                          </div>
-                          <ChevronDown className={`w-4 h-4 text-neutral-400 transition-transform duration-300 ${isSeasonDropdownOpen ? 'rotate-180 text-brand-pink' : ''}`} />
-                        </button>
+                    {(() => {
+                      const totalSeasons = details?.info?.number_of_seasons || item.number_of_seasons || 1;
+                      if (totalSeasons <= 1) return null;
 
-                        <AnimatePresence>
-                          {isSeasonDropdownOpen && (
-                            <motion.div
-                              initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                              animate={{ opacity: 1, y: 4, scale: 1 }}
-                              exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                              transition={{ duration: 0.15, ease: 'easeOut' }}
-                              className="absolute left-0 right-0 top-full bg-neutral-900/95 backdrop-blur-xl border border-neutral-800 rounded-2xl shadow-2xl p-1.5 max-h-56 overflow-y-auto overflow-x-hidden thin-scrollbar z-50 flex flex-col gap-1"
-                            >
-                              {Array.from({ length: item.number_of_seasons || 1 }).map((_, idx) => {
-                                const sNum = idx + 1;
-                                const isSelected = sNum === currentSeason;
-                                return (
-                                  <button
-                                    key={sNum}
-                                    type="button"
-                                    onClick={() => {
-                                      setCurrentSeason(sNum);
-                                      setCurrentEpisode(1);
-                                      setIsSeasonDropdownOpen(false);
-                                    }}
-                                    className={`w-full text-left px-3.5 py-2.5 text-xs font-semibold rounded-xl flex items-center justify-between transition-all cursor-pointer ${
-                                      isSelected
-                                        ? 'bg-brand-pink/15 text-brand-pink font-bold border border-brand-pink/20'
-                                        : 'text-neutral-300 hover:bg-white/5 hover:text-white border border-transparent'
-                                    }`}
-                                  >
-                                    <span>Season {sNum}</span>
-                                    {isSelected && (
-                                      <div className="w-1.5 h-1.5 rounded-full bg-brand-pink shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
-                                    )}
-                                  </button>
-                                );
-                              })}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    ) : null}
+                      return (
+                        <div ref={seasonDropdownRef} className="relative mb-3.5 z-40">
+                          <span className="block text-[10px] font-mono font-bold tracking-wider text-neutral-400 uppercase mb-1.5">
+                            Select Season
+                          </span>
+                          <button
+                            type="button"
+                            id="btn-season-dropdown-toggle"
+                            onClick={() => setIsSeasonDropdownOpen(!isSeasonDropdownOpen)}
+                            className="w-full flex items-center justify-between px-4 py-3 text-xs font-bold rounded-xl bg-neutral-900 border border-neutral-800 text-white hover:border-brand-pink/50 focus:border-brand-pink/60 transition-all duration-200 outline-none cursor-pointer shadow-md"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-brand-pink animate-pulse" />
+                              <span>Season {currentSeason}</span>
+                            </div>
+                            <ChevronDown className={`w-4 h-4 text-neutral-400 transition-transform duration-300 ${isSeasonDropdownOpen ? 'rotate-180 text-brand-pink' : ''}`} />
+                          </button>
+
+                          <AnimatePresence>
+                            {isSeasonDropdownOpen && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                                animate={{ opacity: 1, y: 4, scale: 1 }}
+                                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                                transition={{ duration: 0.15, ease: 'easeOut' }}
+                                className="absolute left-0 right-0 top-full bg-neutral-950/98 backdrop-blur-2xl border border-neutral-800 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.9)] p-1.5 max-h-56 overflow-y-auto overflow-x-hidden thin-scrollbar z-50 flex flex-col gap-1"
+                              >
+                                {Array.from({ length: totalSeasons }).map((_, idx) => {
+                                  const sNum = idx + 1;
+                                  const isSelected = sNum === currentSeason;
+                                  return (
+                                    <button
+                                      key={sNum}
+                                      type="button"
+                                      onClick={() => {
+                                        setCurrentSeason(sNum);
+                                        setCurrentEpisode(1);
+                                        setIsSeasonDropdownOpen(false);
+                                      }}
+                                      className={`w-full text-left px-3.5 py-2.5 text-xs font-bold rounded-xl flex items-center justify-between transition-all cursor-pointer ${
+                                        isSelected
+                                          ? 'bg-brand-pink/15 text-brand-pink border border-brand-pink/20'
+                                          : 'text-neutral-300 hover:bg-white/5 hover:text-white border border-transparent'
+                                      }`}
+                                    >
+                                      <span>Season {sNum}</span>
+                                      {isSelected && (
+                                        <div className="w-1.5 h-1.5 rounded-full bg-brand-pink shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
+                                      )}
+                                    </button>
+                                  );
+                                })}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      );
+                    })()}
 
                     {loadingEpisodes ? (
                       <div className="flex flex-col items-center justify-center py-10 text-neutral-400">
