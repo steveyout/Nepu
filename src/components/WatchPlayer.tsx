@@ -474,7 +474,7 @@ export default function WatchPlayer({
                       if (totalSeasons <= 1) return null;
 
                       return (
-                        <div ref={seasonDropdownRef} className="relative mb-3.5 z-40">
+                        <div ref={seasonDropdownRef} className="relative mb-3.5 z-30">
                           <span className="block text-[10px] font-mono font-bold tracking-wider text-neutral-400 uppercase mb-1.5">
                             Select Season
                           </span>
@@ -498,7 +498,7 @@ export default function WatchPlayer({
                                 animate={{ opacity: 1, y: 4, scale: 1 }}
                                 exit={{ opacity: 0, y: -8, scale: 0.98 }}
                                 transition={{ duration: 0.15, ease: 'easeOut' }}
-                                className="absolute left-0 right-0 top-full bg-neutral-950/98 backdrop-blur-2xl border border-neutral-800 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.9)] p-1.5 max-h-56 overflow-y-auto overflow-x-hidden thin-scrollbar z-50 flex flex-col gap-1"
+                                className="absolute left-0 right-0 top-full mt-1.5 bg-[#0a0a0c] border border-neutral-800 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.95)] p-1.5 max-h-56 overflow-y-auto overflow-x-hidden thin-scrollbar z-50 flex flex-col gap-1"
                               >
                                 {Array.from({ length: totalSeasons }).map((_, idx) => {
                                   const sNum = idx + 1;
@@ -538,7 +538,7 @@ export default function WatchPlayer({
                         <span className="text-xs font-mono">Loading episodes...</span>
                       </div>
                     ) : (
-                      <div className="flex flex-col gap-2.5">
+                      <div className="flex flex-col gap-2.5 relative z-10">
                         {seasonDetails?.episodes && seasonDetails.episodes.length > 0 ? (
                           seasonDetails.episodes.map((ep) => {
                             const isCurrent = ep.episode_number === currentEpisode;
