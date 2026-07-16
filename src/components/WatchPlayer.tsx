@@ -373,9 +373,9 @@ export default function WatchPlayer({
               {item.title || item.name}
             </h2>
             
-            {item.tagline && (
+            {(item.tagline || details?.info?.tagline) && (
               <p className="italic text-brand-pink text-xs mb-4 font-sans font-medium">
-                "{item.tagline}"
+                "{item.tagline || details?.info?.tagline}"
               </p>
             )}
 
@@ -384,27 +384,27 @@ export default function WatchPlayer({
                 {item.media_type}
               </span>
               <span>{releaseYear}</span>
-              {item.vote_average > 0 && (
+              {(item.vote_average > 0 || (details?.info?.vote_average && details.info.vote_average > 0)) && (
                 <span className="flex items-center gap-1 text-amber-400">
                   <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  {item.vote_average.toFixed(1)}
+                  {(item.vote_average || details?.info?.vote_average || 0).toFixed(1)}
                 </span>
               )}
-              {item.runtime ? (
+              {(item.runtime || details?.info?.runtime) ? (
                 <span className="flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
-                  {item.runtime}m
+                  {item.runtime || details?.info?.runtime}m
                 </span>
               ) : null}
             </div>
 
             <p className="text-xs text-neutral-300 leading-relaxed mb-4 font-sans font-normal">
-              {item.overview}
+              {item.overview || details?.info?.overview || (loadingDetails ? 'Loading details...' : 'No overview available.')}
             </p>
 
-            {item.genres && item.genres.length > 0 && (
+            {((item.genres && item.genres.length > 0) || (details?.info?.genres && details.info.genres.length > 0)) && (
               <div className="flex flex-wrap gap-1.5 pt-2 border-t border-neutral-800">
-                {item.genres.map((g) => (
+                {(item.genres || details?.info?.genres || []).map((g) => (
                   <span
                     key={g.id}
                     className="px-2 py-0.5 rounded-md text-[10px] font-medium font-mono bg-neutral-900 border border-neutral-800 text-neutral-400"
