@@ -68,6 +68,12 @@ export const providers: Provider[] = [
     baseUrl: 'https://rivestream.org/embed',
     enabled: true,
   },
+  {
+    id: 'vidcore',
+    name: 'Server 11 (VidCore)',
+    baseUrl: 'https://vidcore.org',
+    enabled: true,
+  },
 ];
 
 export const DEFAULT_PROVIDER_ID = 'cinemaos';
@@ -86,6 +92,14 @@ export const getEmbedUrl = (
 ): string => {
   const selected = providers.find((p) => p.id === providerId);
   if (!selected) return '';
+
+  if (selected.id === 'vidcore') {
+    if (type === 'movie') {
+      return `https://vidcore.org/embed/movie/${tmdbId}?autoPlay=true`;
+    } else {
+      return `https://vidcore.org/embed/tv/${tmdbId}/${season}/${episode}?autoPlay=true`;
+    }
+  }
 
   if (selected.id === 'cinemaos') {
     const brand = getBrand();

@@ -1,4 +1,4 @@
-export type Brand = 'nepu' | 'cineby' | 'nepoflix';
+export type Brand = 'nepu' | 'cineby' | 'nepoflix' | 'coreflix';
 
 export function getBrand(): Brand {
   if (typeof window === 'undefined') return 'nepu';
@@ -10,6 +10,9 @@ export function getBrand(): Brand {
   }
   if (hostname.includes('nepoflix') || search.includes('brand=nepoflix')) {
     return 'nepoflix';
+  }
+  if (hostname.includes('coreflix') || search.includes('brand=coreflix')) {
+    return 'coreflix';
   }
   return 'nepu';
 }
@@ -37,6 +40,17 @@ export function getBrandConfig(brand: Brand) {
         keywords: 'nepoflix, nepoflix stream, nepoflix movie player, free movies, stream tv shows, cyan glassmorphism player, secure stream, responsive video, watch nepoflix',
         desc: 'Nepoflix is a sleek, modern, lightning-fast streaming site featuring cyan glassmorphism, dynamic servers, and robust search indices.',
         tagline: 'Nepoflix – Premium Glassmorphic Movie & TV Streaming',
+      };
+    case 'coreflix':
+      return {
+        name: 'Coreflix',
+        shortName: 'CF',
+        themeColor: '06b6d4', // Cyan (same theme as nepoflix)
+        accentClass: 'brand-coreflix',
+        gradient: 'from-cyan-500 to-indigo-500',
+        keywords: 'coreflix, coreflix online, coreflix stream, watch movies coreflix, free movies, stream tv shows free, coreflix app, coreflix proxy, coreflix alternative, watch coreflix free',
+        desc: 'Stream the latest movies and TV shows on Coreflix. Browse trending content, get personalized recommendations, and build your ultimate watchlist today.',
+        tagline: 'Coreflix | Stream Movies & TV Shows Online',
       };
     case 'nepu':
     default:

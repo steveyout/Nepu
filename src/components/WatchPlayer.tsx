@@ -4,6 +4,7 @@ import { ArrowLeft, Star, Clock, Server, Play, ChevronDown, ListVideo, Users, Sp
 import { MediaItem, Episode, SeasonDetails, CastMember, VideoItem } from '../types';
 import { providers, DEFAULT_PROVIDER_ID, getEmbedUrl } from '../config/providers';
 import MediaCard from './MediaCard';
+import { getBrand, getBrandConfig } from '../utils/brand';
 
 interface WatchPlayerProps {
   item: MediaItem;
@@ -33,7 +34,11 @@ export default function WatchPlayer({
   onTrackProgress,
 }: WatchPlayerProps) {
   const isMovie = item.media_type === 'movie';
-  const [selectedProvider, setSelectedProvider] = useState<string>(DEFAULT_PROVIDER_ID);
+  const brand = getBrand();
+  const brandConfig = getBrandConfig(brand);
+  const defaultProvider = brand === 'coreflix' ? 'vidcore' : DEFAULT_PROVIDER_ID;
+  const [selectedProvider, setSelectedProvider] = useState<string>(defaultProvider);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   
   // TV State
   const [currentSeason, setCurrentSeason] = useState<number>(1);
@@ -72,6 +77,10 @@ export default function WatchPlayer({
   useEffect(() => {
     setActiveTab(isMovie ? 'cast' : 'episodes');
   }, [isMovie]);
+
+  useEffect(() => {
+    setIsPlaying(false);
+  }, [item.id, currentSeason, currentEpisode]);
 
   // Fetch full details (cast, recommendations, etc.)
   useEffect(() => {
@@ -231,7 +240,7 @@ export default function WatchPlayer({
             id="video-player-container"
             className="relative w-full aspect-video rounded-3xl overflow-hidden bg-neutral-950 border border-rose-500/10 shadow-2xl bg-pink-glow"
           >
-            {!isRefreshing ? (
+            {isPlaying && !isRefreshing ? (
               <iframe
                 id="nepu-media-iframe"
                 src={embedUrl}
@@ -241,11 +250,32 @@ export default function WatchPlayer({
                 referrerPolicy="no-referrer"
                 allow="autoplay; encrypted-media; picture-in-picture"
               />
-            ) : (
+            ) : isRefreshing ? (
               <div className="absolute inset-0 flex items-center justify-center text-white bg-neutral-950/90">
                 <div className="flex flex-col items-center gap-2">
                   <RefreshCw className="w-8 h-8 text-brand-pink animate-spin" />
                   <span className="text-xs font-mono">Reloading stream...</span>
+                </div>
+              </div>
+            ) : (
+              <div
+                className="absolute inset-0 w-full h-full cursor-pointer group"
+                onClick={() => setIsPlaying(true)}
+              >
+                <img
+                  src={item.backdrop_path || item.poster_path}
+                  alt={item.title || item.name}
+                  className="w-full h-full object-cover opacity-60 group-hover:opacity-50 group-hover:scale-105 transition-all duration-500"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-pink-gradient flex items-center justify-center text-white shadow-lg bg-pink-glow group-hover:scale-110 transition-all duration-300">
+                    <Play className="w-8 h-8 fill-white ml-1 text-white" />
+                  </div>
+                  <span className="text-xs font-bold tracking-wider uppercase text-neutral-300 font-mono bg-black/60 px-4 py-2 rounded-full border border-white/10 backdrop-blur-md group-hover:text-white transition-colors">
+                    Click to Play Stream on {selectedProvider === 'vidcore' ? 'VidCore' : providers.find(p => p.id === selectedProvider)?.name || 'Server'}
+                  </span>
                 </div>
               </div>
             )}

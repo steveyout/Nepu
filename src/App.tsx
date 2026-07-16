@@ -142,9 +142,10 @@ export default function App() {
     }
     const nepuSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="50%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="url(#g)" text-anchor="middle">N</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs></svg>`;
     const nepoflixSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="51%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="url(#g)" text-anchor="middle" letter-spacing="-1">NF</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs></svg>`;
+    const coreflixSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="51%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="url(#g)" text-anchor="middle" letter-spacing="-1">CF</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs></svg>`;
     const cinebySvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="50%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="url(#g)" text-anchor="middle">C</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#ea580c"/></linearGradient></defs></svg>`;
 
-    const selectedSvg = brand === 'nepoflix' ? nepoflixSvg : brand === 'cineby' ? cinebySvg : nepuSvg;
+    const selectedSvg = brand === 'coreflix' ? coreflixSvg : brand === 'nepoflix' ? nepoflixSvg : brand === 'cineby' ? cinebySvg : nepuSvg;
 
     try {
       const base64Svg = btoa(unescape(encodeURIComponent(selectedSvg)));
@@ -319,20 +320,20 @@ export default function App() {
 
   const bgThemeClass =
     theme === 'dark'
-      ? `bg-[#050505] text-white min-h-screen relative overflow-x-hidden font-sans selection:bg-rose-500/30 ${brand === 'nepoflix' ? 'nepoflix-theme' : brand === 'cineby' ? 'cineby-theme' : ''}`
-      : `bg-[#fafafa] text-neutral-900 min-h-screen relative overflow-x-hidden font-sans selection:bg-rose-500/20 ${brand === 'nepoflix' ? 'nepoflix-theme' : brand === 'cineby' ? 'cineby-theme' : ''}`;
+      ? `bg-[#050505] text-white min-h-screen relative overflow-x-hidden font-sans selection:bg-rose-500/30 ${brand === 'nepoflix' || brand === 'coreflix' ? 'nepoflix-theme' : brand === 'cineby' ? 'cineby-theme' : ''}`
+      : `bg-[#fafafa] text-neutral-900 min-h-screen relative overflow-x-hidden font-sans selection:bg-rose-500/20 ${brand === 'nepoflix' || brand === 'coreflix' ? 'nepoflix-theme' : brand === 'cineby' ? 'cineby-theme' : ''}`;
 
   return (
     <div id="nepu-app-container" className={bgThemeClass}>
       {/* Visual background ambient glowing blobs matching dynamic brand theme */}
       <div className={`absolute top-[-200px] left-[-200px] w-[600px] h-[600px] ${
-        brand === 'nepoflix' ? 'bg-cyan-600/20' : brand === 'cineby' ? 'bg-amber-600/25' : 'bg-pink-600/20'
+        brand === 'nepoflix' || brand === 'coreflix' ? 'bg-cyan-600/20' : brand === 'cineby' ? 'bg-amber-600/25' : 'bg-pink-600/20'
       } rounded-full blur-[120px] pointer-events-none z-0`} />
       <div className={`absolute bottom-[-100px] right-[-100px] w-[500px] h-[500px] ${
-        brand === 'nepoflix' ? 'bg-indigo-900/30' : brand === 'cineby' ? 'bg-orange-950/40' : 'bg-purple-900/30'
+        brand === 'nepoflix' || brand === 'coreflix' ? 'bg-indigo-900/30' : brand === 'cineby' ? 'bg-orange-950/40' : 'bg-purple-900/30'
       } rounded-full blur-[100px] pointer-events-none z-0`} />
       <div className={`absolute top-[40%] left-[50%] w-[450px] h-[450px] ${
-        brand === 'nepoflix' ? 'bg-cyan-900/10' : brand === 'cineby' ? 'bg-amber-900/15' : 'bg-pink-900/10'
+        brand === 'nepoflix' || brand === 'coreflix' ? 'bg-cyan-900/10' : brand === 'cineby' ? 'bg-amber-900/15' : 'bg-pink-900/10'
       } rounded-full blur-[110px] pointer-events-none z-0`} />
 
       {/* Main Glassmorphic Sticky Header */}
