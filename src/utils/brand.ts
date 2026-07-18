@@ -23,11 +23,11 @@ export function getBrandConfig(brand: Brand) {
       return {
         name: 'Cineby',
         shortName: 'CB',
-        themeColor: 'fbbf24', // Amber/yellow for cinematic cineby feel
+        themeColor: 'ef4444', // Reddish theme color for premium cinematic feel
         accentClass: 'brand-cineby',
-        gradient: 'from-amber-400 to-orange-500',
-        keywords: 'cineby, cineby stream, cineby app, cineby proxy, cineby alternative, free movies, stream tv shows, free movie streaming, cinema online, cineby watch, watch cineby free',
-        desc: 'Cineby - Stream HD movies and TV shows for free, no ads, and no sign-up. The ultimate premium movie streaming alternative for cinema lovers.',
+        gradient: 'from-red-500 to-rose-700', // Beautiful reddish gradient
+        keywords: 'cineby, cineby works, cineby rest, cineby stream, cineby app, cineby proxy, cineby alternative, free movies, stream tv shows, free movie streaming, cinema online, cineby watch, watch cineby free',
+        desc: 'Stream the latest movies and TV shows for free in HD quality on Cineby. Browse trending content, get personalized recommendations, and build your ultimate watchlist today without any ads or subscriptions.',
         tagline: 'Cineby – Stream HD Movies & TV Shows for Free',
       };
     case 'nepoflix':

@@ -32,20 +32,20 @@
   --theme-immersive-active-shadow: rgba(6, 182, 212, 0.12);
 }
 
-/* Cineby Theme - Warm cinematic luxury gold aesthetic */
+/* Cineby Theme - Luxury cinematic reddish crimson aesthetic */
 .cineby-theme {
-  --theme-brand-pink: #fbbf24;      /* amber-400 */
-  --theme-brand-magenta: #f59e0b;   /* amber-500 */
-  --theme-brand-violet: #ea580c;    /* orange-600 */
-  --theme-glow-color: rgba(251, 191, 36, 0.45);
-  --theme-glow-color-text: rgba(251, 191, 36, 0.6);
-  --theme-gradient-start: #fbbf24;
-  --theme-gradient-mid: #f59e0b;
-  --theme-gradient-end: #ea580c;
-  --theme-immersive-grad-end: #fdba74;
-  --theme-immersive-active-bg: rgba(245, 158, 11, 0.25);
-  --theme-immersive-active-border: rgba(245, 158, 11, 0.35);
-  --theme-immersive-active-shadow: rgba(245, 158, 11, 0.12);
+  --theme-brand-pink: #f87171;      /* red/rose accent */
+  --theme-brand-magenta: #ef4444;   /* red-500 */
+  --theme-brand-violet: #b91c1c;    /* red-700 */
+  --theme-glow-color: rgba(239, 68, 68, 0.45);
+  --theme-glow-color-text: rgba(248, 113, 113, 0.6);
+  --theme-gradient-start: #f87171;
+  --theme-gradient-mid: #ef4444;
+  --theme-gradient-end: #b91c1c;
+  --theme-immersive-grad-end: #fca5a5;
+  --theme-immersive-active-bg: rgba(239, 68, 68, 0.2);
+  --theme-immersive-active-border: rgba(239, 68, 68, 0.35);
+  --theme-immersive-active-shadow: rgba(239, 68, 68, 0.12);
 }
 
 @theme {
