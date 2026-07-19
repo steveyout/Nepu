@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
+import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { mockMovies, mockShows, mockAll, getMockCast, getMockVideos, getMockSeasonDetails } from './src/mock_db';
 
@@ -11,6 +12,84 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const TMDB_API_KEY = process.env.TMDB_API_KEY || '';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
+
+// Helper to determine brand based on host
+function getBrandFromHost(host: string): 'nepu' | 'cineby' | 'nepoflix' | 'coreflix' {
+  const hostname = host.toLowerCase();
+  if (hostname.includes('cineby')) {
+    return 'cineby';
+  }
+  if (hostname.includes('nepoflix')) {
+    return 'nepoflix';
+  }
+  if (hostname.includes('coreflix')) {
+    return 'coreflix';
+  }
+  return 'nepu';
+}
+
+// Inject SEO tags dynamically based on the requested host
+function injectSEOTags(html: string, host: string): string {
+  const brand = getBrandFromHost(host);
+  let title = '';
+  let desc = '';
+  let keywords = '';
+  let svg = '';
+
+  if (brand === 'cineby') {
+    title = 'Cineby – Stream HD Movies & TV Shows for Free';
+    desc = 'Stream the latest movies and TV shows for free in HD quality on Cineby. Browse trending content, get personalized recommendations, and build your ultimate watchlist today without any ads or subscriptions.';
+    keywords = 'cineby, cineby works, cineby rest, cineby stream, cineby app, cineby proxy, cineby alternative, free movies, stream tv shows, free movie streaming, cinema online, cineby watch, watch cineby free';
+    svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="50%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="url(#g)" text-anchor="middle">C</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#991b1b"/></linearGradient></defs></svg>`;
+  } else if (brand === 'coreflix') {
+    title = 'Coreflix | Stream Movies & TV Shows Online';
+    desc = 'Stream the latest movies and TV shows on Coreflix. Browse trending content, get personalized recommendations, and build your ultimate watchlist today.';
+    keywords = 'coreflix, coreflix online, coreflix stream, watch movies coreflix, free movies, stream tv shows free, coreflix app, coreflix proxy, coreflix alternative, watch coreflix free';
+    svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="51%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="url(#g)" text-anchor="middle" letter-spacing="-1">CF</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs></svg>`;
+  } else if (brand === 'nepoflix') {
+    title = 'Nepoflix – Premium Glassmorphic Movie & TV Streaming';
+    desc = 'Nepoflix is a sleek, modern, lightning-fast streaming site featuring cyan glassmorphism, dynamic servers, and robust search indices.';
+    keywords = 'nepoflix, nepoflix stream, nepoflix movie player, free movies, stream tv shows, cyan glassmorphism player, secure stream, responsive video, watch nepoflix';
+    svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="51%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="url(#g)" text-anchor="middle" letter-spacing="-1">NF</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs></svg>`;
+  } else {
+    title = 'Nepu – Watch Free Movies & TV Shows in High Quality';
+    desc = 'Nepu – Stream HD movies and TV shows for free, ad-free, and no subscriptions needed. Enjoy endless entertainment instantly on Nepu!';
+    keywords = 'nepu, nepu stream, nepu movie player, free movies, stream tv shows, pinkish glassmorphism player, vidking premium, responsive bottom bar, clean typography, nepu site, watch nepu';
+    svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="50%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="url(#g)" text-anchor="middle">N</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs></svg>`;
+  }
+
+  // Convert SVG to Base64 for index.html link tag
+  const base64Svg = Buffer.from(svg).toString('base64');
+
+  let result = html;
+  
+  // Replace title
+  result = result.replace(/<title>[^]*?<\/title>/gi, `<title>${title}</title>`);
+  
+  // Replace description meta tag
+  if (result.includes('name="description"')) {
+    result = result.replace(/<meta\s+name="description"\s+content="[^]*?"\s*\/?>/gi, `<meta name="description" content="${desc}" />`);
+  } else {
+    result = result.replace('</head>', `  <meta name="description" content="${desc}" />\n</head>`);
+  }
+
+  // Replace keywords meta tag
+  if (result.includes('name="keywords"')) {
+    result = result.replace(/<meta\s+name="keywords"\s+content="[^]*?"\s*\/?>/gi, `<meta name="keywords" content="${keywords}" />`);
+  } else {
+    result = result.replace('</head>', `  <meta name="keywords" content="${keywords}" />\n</head>`);
+  }
+
+  // Inject/replace favicon tag with the correct base64 SVG data URI
+  const faviconTag = `<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,${base64Svg}" />`;
+  if (result.includes('rel="icon"') || result.includes('rel=icon')) {
+    result = result.replace(/<link\s+rel="[^]*?icon"\s+[^>]*?\/?>/gi, faviconTag);
+  } else {
+    result = result.replace('</head>', `  ${faviconTag}\n</head>`);
+  }
+
+  return result;
+}
 
 app.use(express.json());
 
@@ -342,6 +421,27 @@ app.get('/sitemap.xml', (req, res) => {
   return res.send(sitemap.trim());
 });
 
+// Dynamic /favicon.ico handler for search engines and direct requests!
+app.get('/favicon.ico', (req, res) => {
+  const host = req.get('host') || '';
+  const brand = getBrandFromHost(host);
+  
+  let svg = '';
+  if (brand === 'cineby') {
+    svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="50%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="url(#g)" text-anchor="middle">C</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#991b1b"/></linearGradient></defs></svg>`;
+  } else if (brand === 'coreflix') {
+    svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="51%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="url(#g)" text-anchor="middle" letter-spacing="-1">CF</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs></svg>`;
+  } else if (brand === 'nepoflix') {
+    svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="51%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="url(#g)" text-anchor="middle" letter-spacing="-1">NF</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs></svg>`;
+  } else {
+    svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="50%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="url(#g)" text-anchor="middle">N</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs></svg>`;
+  }
+
+  res.header('Content-Type', 'image/svg+xml');
+  res.header('Cache-Control', 'public, max-age=86400');
+  res.send(svg);
+});
+
 // Vite server integrations
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
@@ -352,9 +452,23 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
+    // Serves static files, but index.html is bypassed to run dynamic SEO meta-tags injection
+    app.use(express.static(distPath, { index: false }));
     app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      const host = req.get('host') || '';
+      try {
+        const filePath = path.join(distPath, 'index.html');
+        if (fs.existsSync(filePath)) {
+          let html = fs.readFileSync(filePath, 'utf8');
+          html = injectSEOTags(html, host);
+          res.send(html);
+        } else {
+          res.sendFile(filePath);
+        }
+      } catch (err) {
+        console.error('Error serving dynamic index.html:', err);
+        res.sendFile(path.join(distPath, 'index.html'));
+      }
     });
   }
 
