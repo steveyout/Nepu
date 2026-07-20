@@ -200,10 +200,106 @@ export default function App() {
     return () => clearTimeout(delayDebounce);
   }, [searchQuery]);
 
+  const slugify = (text: string): string => {
+    return text
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
+  const navigateTo = (tab: string, mediaItem: MediaItem | null = null, replace = false) => {
+    setActiveTab(tab);
+    setSelectedMedia(mediaItem);
+    setSelectedGenreId(0);
+
+    let path = '/';
+    if (tab === 'movies') path = '/movies';
+    else if (tab === 'shows') path = '/shows';
+    else if (tab === 'saved') path = '/saved';
+    else if (tab === 'search') path = '/search';
+    else if (tab === 'player' && mediaItem) {
+      const type = mediaItem.media_type || 'movie';
+      const slug = slugify(mediaItem.title || mediaItem.name || 'stream');
+      path = `/watch/${type}/${mediaItem.id}/${slug}`;
+    }
+
+    if (replace) {
+      window.history.replaceState({ tab, mediaId: mediaItem?.id }, '', path);
+    } else {
+      window.history.pushState({ tab, mediaId: mediaItem?.id }, '', path);
+    }
+  };
+
+  // Sync initial URL path and load direct deep-linked media details
+  useEffect(() => {
+    const path = window.location.pathname;
+    const watchRegex = /^\/watch\/(movie|tv)\/([0-9]+)/i;
+    const match = path.match(watchRegex);
+
+    if (match) {
+      const mediaType = match[1];
+      const mediaId = Number(match[2]);
+      setLoadingCollections(true);
+      fetch(`/api/details/${mediaType}/${mediaId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.info) {
+            setSelectedMedia(data.info);
+            setActiveTab('player');
+          }
+          setLoadingCollections(false);
+        })
+        .catch((err) => {
+          console.error('Initial deep link fetch error:', err);
+          setLoadingCollections(false);
+        });
+    }
+
+    const handlePopState = (e: PopStateEvent) => {
+      const currentPath = window.location.pathname;
+      const watchMatch = currentPath.match(watchRegex);
+
+      if (watchMatch) {
+        const mediaType = watchMatch[1];
+        const mediaId = Number(watchMatch[2]);
+        fetch(`/api/details/${mediaType}/${mediaId}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data && data.info) {
+              setActiveTab('player');
+              setSelectedMedia(data.info);
+            }
+          })
+          .catch((err) => {
+            console.error('Popstate detail fetch error:', err);
+          });
+      } else if (currentPath.startsWith('/movies')) {
+        setActiveTab('movies');
+        setSelectedMedia(null);
+      } else if (currentPath.startsWith('/shows')) {
+        setActiveTab('shows');
+        setSelectedMedia(null);
+      } else if (currentPath.startsWith('/saved')) {
+        setActiveTab('saved');
+        setSelectedMedia(null);
+      } else if (currentPath.startsWith('/search')) {
+        setActiveTab('search');
+        setSelectedMedia(null);
+      } else {
+        setActiveTab('home');
+        setSelectedMedia(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // Navigation handlers
   const handleSelectMedia = (item: MediaItem) => {
-    setSelectedMedia(item);
-    setActiveTab('player');
+    navigateTo('player', item);
   };
 
   const handleToggleSave = (e: React.MouseEvent, item: MediaItem) => {
@@ -270,8 +366,7 @@ export default function App() {
         vote_count: 100,
       } as MediaItem);
 
-    setSelectedMedia(found);
-    setActiveTab('player');
+    navigateTo('player', found);
   };
 
   const clearHistoryItem = (e: React.MouseEvent, id: number) => {
@@ -340,8 +435,7 @@ export default function App() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={(tab) => {
-          setActiveTab(tab);
-          setSelectedGenreId(0);
+          navigateTo(tab);
         }}
         theme={theme}
         toggleTheme={toggleTheme}
@@ -368,12 +462,11 @@ export default function App() {
                 savedIds={savedIds}
                 onToggleSave={handleToggleSave}
                 onSelectRecommendation={(rec) => {
-                  setSelectedMedia(rec);
+                  navigateTo('player', rec);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 onBack={() => {
-                  setActiveTab('home');
-                  setSelectedMedia(null);
+                  navigateTo('home');
                 }}
                 onTrackProgress={handleTrackProgress}
               />
@@ -918,7 +1011,7 @@ export default function App() {
       </main>
 
       {/* Floating Bottom Bar Navigation on Mobile */}
-      <BottomBar activeTab={activeTab} setActiveTab={setActiveTab} theme={theme} />
+      <BottomBar activeTab={activeTab} setActiveTab={(tab) => navigateTo(tab)} theme={theme} />
     </div>
   );
 }

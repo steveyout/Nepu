@@ -28,64 +28,215 @@ function getBrandFromHost(host: string): 'nepu' | 'cineby' | 'nepoflix' | 'coref
   return 'nepu';
 }
 
-// Inject SEO tags dynamically based on the requested host
-function injectSEOTags(html: string, host: string): string {
+// Asynchronously fetch media metadata for SSR purposes
+async function fetchMediaMetadata(type: string, id: string): Promise<any | null> {
+  const numId = Number(id);
+  if (isNaN(numId)) return null;
+  try {
+    if (!TMDB_API_KEY) {
+      return mockAll.find((m) => m.id === numId && m.media_type === type) || null;
+    }
+    const infoData = await fetchFromTMDB(`/${type}/${id}`);
+    if (!infoData || infoData.success === false) return null;
+    return {
+      id: infoData.id,
+      title: infoData.title || infoData.name || '',
+      name: infoData.name || infoData.title || '',
+      overview: infoData.overview || '',
+      poster_path: infoData.poster_path ? `https://image.tmdb.org/t/p/w500${infoData.poster_path}` : 'https://image.tmdb.org/t/p/w500/vpnVM9B6m6X7gZ64oA0htZPLrst.jpg',
+      backdrop_path: infoData.backdrop_path ? `https://image.tmdb.org/t/p/original${infoData.backdrop_path}` : 'https://image.tmdb.org/t/p/original/stKGOmXhjR46SVg8367zSsuIuSI.jpg',
+      media_type: type as 'movie' | 'tv',
+      release_date: infoData.release_date || infoData.first_air_date || '',
+      vote_average: infoData.vote_average || 0,
+      vote_count: infoData.vote_count || 0,
+      genres: infoData.genres || [],
+      runtime: infoData.runtime || 0,
+      tagline: infoData.tagline || '',
+    };
+  } catch (err) {
+    console.error('Error fetching SSR metadata:', err);
+    return mockAll.find((m) => m.id === numId && m.media_type === type) || null;
+  }
+}
+
+// Inject advanced SEO tags, dynamic themes, Open Graph, Twitter Cards, and Schema.org rich snippets dynamically
+async function injectDynamicSEO(html: string, host: string, urlPath: string): Promise<string> {
   const brand = getBrandFromHost(host);
   let title = '';
   let desc = '';
   let keywords = '';
   let svg = '';
+  let ogImage = '';
+  let jsonLd: any = null;
 
+  // 1. Set brand defaults
   if (brand === 'cineby') {
     title = 'Cineby – Stream HD Movies & TV Shows for Free';
     desc = 'Stream the latest movies and TV shows for free in HD quality on Cineby. Browse trending content, get personalized recommendations, and build your ultimate watchlist today without any ads or subscriptions.';
     keywords = 'cineby, cineby works, cineby rest, cineby stream, cineby app, cineby proxy, cineby alternative, free movies, stream tv shows, free movie streaming, cinema online, cineby watch, watch cineby free';
     svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="50%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="url(#g)" text-anchor="middle">C</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#991b1b"/></linearGradient></defs></svg>`;
+    ogImage = 'https://image.tmdb.org/t/p/original/stKGOmXhjR46SVg8367zSsuIuSI.jpg';
   } else if (brand === 'coreflix') {
     title = 'Coreflix | Stream Movies & TV Shows Online';
     desc = 'Stream the latest movies and TV shows on Coreflix. Browse trending content, get personalized recommendations, and build your ultimate watchlist today.';
     keywords = 'coreflix, coreflix online, coreflix stream, watch movies coreflix, free movies, stream tv shows free, coreflix app, coreflix proxy, coreflix alternative, watch coreflix free';
     svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="51%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="url(#g)" text-anchor="middle" letter-spacing="-1">CF</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs></svg>`;
+    ogImage = 'https://image.tmdb.org/t/p/original/stKGOmXhjR46SVg8367zSsuIuSI.jpg';
   } else if (brand === 'nepoflix') {
     title = 'Nepoflix – Premium Glassmorphic Movie & TV Streaming';
     desc = 'Nepoflix is a sleek, modern, lightning-fast streaming site featuring cyan glassmorphism, dynamic servers, and robust search indices.';
     keywords = 'nepoflix, nepoflix stream, nepoflix movie player, free movies, stream tv shows, cyan glassmorphism player, secure stream, responsive video, watch nepoflix';
     svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="51%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="url(#g)" text-anchor="middle" letter-spacing="-1">NF</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs></svg>`;
+    ogImage = 'https://image.tmdb.org/t/p/original/stKGOmXhjR46SVg8367zSsuIuSI.jpg';
   } else {
     title = 'Nepu – Watch Free Movies & TV Shows in High Quality';
     desc = 'Nepu – Stream HD movies and TV shows for free, ad-free, and no subscriptions needed. Enjoy endless entertainment instantly on Nepu!';
     keywords = 'nepu, nepu stream, nepu movie player, free movies, stream tv shows, pinkish glassmorphism player, vidking premium, responsive bottom bar, clean typography, nepu site, watch nepu';
     svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#09090b"/><rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="url(#g)" stroke-width="3.2" opacity="0.85"/><text x="50%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="url(#g)" text-anchor="middle">N</text><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f43f5e"/><stop offset="100%" stop-color="#ec4899"/></linearGradient></defs></svg>`;
+    ogImage = 'https://image.tmdb.org/t/p/original/stKGOmXhjR46SVg8367zSsuIuSI.jpg';
   }
 
-  // Convert SVG to Base64 for index.html link tag
+  // 2. Default Website Schema.org rich snippet
+  const brandName = brand === 'cineby' ? 'Cineby' : brand === 'coreflix' ? 'Coreflix' : brand === 'nepoflix' ? 'Nepoflix' : 'Nepu';
+  jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    'name': brandName,
+    'url': `https://${host}`,
+    'description': desc,
+    'potentialAction': {
+      '@type': 'SearchAction',
+      'target': `https://${host}/search?q={search_term_string}`,
+      'query-input': 'required name=search_term_string'
+    }
+  };
+
+  // 3. Handle path-specific metadata and schema.org rich snippets
+  // Matches /watch/movie/:id or /watch/movie/:id/:slug or /watch/tv/:id or /watch/tv/:id/:slug
+  const watchRegex = /^\/watch\/(movie|tv)\/([0-9]+)/i;
+  const match = urlPath.match(watchRegex);
+
+  if (match) {
+    const mediaType = match[1];
+    const mediaId = match[2];
+    const media = await fetchMediaMetadata(mediaType, mediaId);
+
+    if (media) {
+      const mediaTitle = media.title || media.name || '';
+      const releaseYear = media.release_date ? media.release_date.substring(0, 4) : '';
+      
+      // Override default SEO with item-specific metadata
+      title = `Watch ${mediaTitle} (${releaseYear}) Online Free | ${brandName}`;
+      desc = `Stream ${mediaTitle} (${releaseYear}) in full HD quality. ${media.overview ? media.overview.substring(0, 160) : 'Watch movies and TV shows for free online without any ads.'}...`;
+      ogImage = media.backdrop_path || media.poster_path || ogImage;
+
+      // Define specific schema.org structured data (Movie or TVSeries rich snippet)
+      if (mediaType === 'movie') {
+        jsonLd = {
+          '@context': 'https://schema.org',
+          '@type': 'Movie',
+          'name': mediaTitle,
+          'image': media.poster_path || ogImage,
+          'description': media.overview,
+          'dateCreated': media.release_date,
+          'aggregateRating': {
+            '@type': 'AggregateRating',
+            'ratingValue': media.vote_average || 8.0,
+            'bestRating': '10',
+            'ratingCount': media.vote_count || 100
+          },
+          'releasedEvent': {
+            '@type': 'PublicationEvent',
+            'startDate': media.release_date,
+            'location': {
+              '@type': 'Country',
+              'name': 'US'
+            }
+          }
+        };
+      } else {
+        jsonLd = {
+          '@context': 'https://schema.org',
+          '@type': 'TVSeries',
+          'name': mediaTitle,
+          'image': media.poster_path || ogImage,
+          'description': media.overview,
+          'aggregateRating': {
+            '@type': 'AggregateRating',
+            'ratingValue': media.vote_average || 8.0,
+            'bestRating': '10',
+            'ratingCount': media.vote_count || 100
+          }
+        };
+      }
+    }
+  } else if (urlPath.startsWith('/movies')) {
+    title = `Explore Blockbuster Movies | ${brandName} Cinema`;
+    desc = `Discover top-rated, popular, and trending movies in the ${brandName} index. Filter by genre and stream instantly in high definition.`;
+  } else if (urlPath.startsWith('/shows')) {
+    title = `Binge Premium TV Shows & Series | ${brandName} Stream`;
+    desc = `Browse outstanding TV series, season episodes, and animations on ${brandName} with our elite media player interface.`;
+  } else if (urlPath.startsWith('/saved')) {
+    title = `My Saved Watchlist | ${brandName} Library`;
+    desc = `Your personalized cinematic library. Access saved movies and TV shows on ${brandName} instantly.`;
+  } else if (urlPath.startsWith('/search')) {
+    title = `Search Movies & TV Shows | ${brandName} Finder`;
+    desc = `Search across thousands of indexed titles on ${brandName} to find your next cinematic experience.`;
+  }
+
+  // Convert SVG to Base64 for favicon
   const base64Svg = Buffer.from(svg).toString('base64');
-
   let result = html;
-  
-  // Replace title
+
+  // Replace Title
   result = result.replace(/<title>[^]*?<\/title>/gi, `<title>${title}</title>`);
-  
-  // Replace description meta tag
+
+  // Replace Description
+  const descMeta = `<meta name="description" content="${desc.replace(/"/g, '&quot;')}" />`;
   if (result.includes('name="description"')) {
-    result = result.replace(/<meta\s+name="description"\s+content="[^]*?"\s*\/?>/gi, `<meta name="description" content="${desc}" />`);
+    result = result.replace(/<meta\s+name="description"\s+content="[^]*?"\s*\/?>/gi, descMeta);
   } else {
-    result = result.replace('</head>', `  <meta name="description" content="${desc}" />\n</head>`);
+    result = result.replace('</head>', `  ${descMeta}\n</head>`);
   }
 
-  // Replace keywords meta tag
+  // Replace Keywords
+  const keywordsMeta = `<meta name="keywords" content="${keywords.replace(/"/g, '&quot;')}" />`;
   if (result.includes('name="keywords"')) {
-    result = result.replace(/<meta\s+name="keywords"\s+content="[^]*?"\s*\/?>/gi, `<meta name="keywords" content="${keywords}" />`);
+    result = result.replace(/<meta\s+name="keywords"\s+content="[^]*?"\s*\/?>/gi, keywordsMeta);
   } else {
-    result = result.replace('</head>', `  <meta name="keywords" content="${keywords}" />\n</head>`);
+    result = result.replace('</head>', `  ${keywordsMeta}\n</head>`);
   }
 
-  // Inject/replace favicon tag with the correct base64 SVG data URI
+  // Open Graph / Twitter Tags (for gorgeous rich previews on Discord, Twitter, Facebook, Telegram)
+  const ogTags = `
+  <meta property="og:title" content="${title.replace(/"/g, '&quot;')}" />
+  <meta property="og:description" content="${desc.replace(/"/g, '&quot;')}" />
+  <meta property="og:image" content="${ogImage}" />
+  <meta property="og:type" content="video.movie" />
+  <meta property="og:url" content="https://${host}${urlPath}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${title.replace(/"/g, '&quot;')}" />
+  <meta name="twitter:description" content="${desc.replace(/"/g, '&quot;')}" />
+  <meta name="twitter:image" content="${ogImage}" />
+  `;
+  result = result.replace('</head>', `  ${ogTags}\n</head>`);
+
+  // Inject/replace favicon
   const faviconTag = `<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,${base64Svg}" />`;
   if (result.includes('rel="icon"') || result.includes('rel=icon')) {
     result = result.replace(/<link\s+rel="[^]*?icon"\s+[^>]*?\/?>/gi, faviconTag);
   } else {
     result = result.replace('</head>', `  ${faviconTag}\n</head>`);
+  }
+
+  // Inject Schema.org Rich Snippet JSON-LD
+  if (jsonLd) {
+    const jsonLdScript = `
+  <script type="application/ld+json">
+    ${JSON.stringify(jsonLd, null, 2)}
+  </script>
+    `;
+    result = result.replace('</head>', `  ${jsonLdScript}\n</head>`);
   }
 
   return result;
@@ -393,10 +544,20 @@ app.get('/sitemap.xml', (req, res) => {
     { loc: `${dynamicDomain}/saved`, changefreq: 'daily', priority: '0.7' },
   ];
 
-  // Add the trending mock movies for SEO coverage
+  // Add the trending mock movies for SEO coverage with nice descriptive slugs!
+  const serverSlugify = (text: string): string => {
+    return text
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
   mockAll.forEach((item) => {
+    const slug = serverSlugify(item.title || item.name || 'stream');
     urls.push({
-      loc: `${dynamicDomain}/watch/${item.media_type}/${item.id}`,
+      loc: `${dynamicDomain}/watch/${item.media_type}/${item.id}/${slug}`,
       changefreq: 'monthly',
       priority: '0.6',
     });
@@ -442,33 +603,69 @@ app.get('/favicon.ico', (req, res) => {
   res.send(svg);
 });
 
+// Dynamic Document Requests Handler for SSR and Rich Snippets!
+async function handleDocumentRequest(req: express.Request, res: express.Response, viteInstance?: any) {
+  const host = req.get('host') || 'localhost:3000';
+  const urlPath = req.path;
+
+  try {
+    let html = '';
+    if (process.env.NODE_ENV !== 'production' && viteInstance) {
+      const indexPath = path.join(process.cwd(), 'index.html');
+      if (fs.existsSync(indexPath)) {
+        html = fs.readFileSync(indexPath, 'utf8');
+        html = await viteInstance.transformIndexHtml(req.originalUrl, html);
+      }
+    } else {
+      const distPath = path.join(process.cwd(), 'dist');
+      const indexPath = path.join(distPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        html = fs.readFileSync(indexPath, 'utf8');
+      }
+    }
+
+    if (html) {
+      const finalHtml = await injectDynamicSEO(html, host, urlPath);
+      return res.status(200).set({ 'Content-Type': 'text/html' }).end(finalHtml);
+    }
+
+    // fallback
+    if (process.env.NODE_ENV !== 'production') {
+      res.sendFile(path.join(process.cwd(), 'index.html'));
+    } else {
+      res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
+    }
+  } catch (err) {
+    console.error('Error handling document request SSR:', err);
+    if (process.env.NODE_ENV !== 'production') {
+      res.sendFile(path.join(process.cwd(), 'index.html'));
+    } else {
+      res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
+    }
+  }
+}
+
 // Vite server integrations
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
-      appType: 'spa',
+      appType: 'custom',
     });
+    
+    // Serve static files via Vite middleware
     app.use(vite.middlewares);
+
+    // Dynamic SEO routing in Development
+    app.get(['/', '/movies', '/shows', '/saved', '/search', '/watch/:type/:id', '/watch/:type/:id/:slug'], async (req, res) => {
+      await handleDocumentRequest(req, res, vite);
+    });
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     // Serves static files, but index.html is bypassed to run dynamic SEO meta-tags injection
     app.use(express.static(distPath, { index: false }));
-    app.get('*', (req, res) => {
-      const host = req.get('host') || '';
-      try {
-        const filePath = path.join(distPath, 'index.html');
-        if (fs.existsSync(filePath)) {
-          let html = fs.readFileSync(filePath, 'utf8');
-          html = injectSEOTags(html, host);
-          res.send(html);
-        } else {
-          res.sendFile(filePath);
-        }
-      } catch (err) {
-        console.error('Error serving dynamic index.html:', err);
-        res.sendFile(path.join(distPath, 'index.html'));
-      }
+    app.get('*', async (req, res) => {
+      await handleDocumentRequest(req, res);
     });
   }
 
