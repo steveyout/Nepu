@@ -184,8 +184,6 @@ async function injectDynamicSEO(html: string, host: string, urlPath: string): Pr
     desc = `Search across thousands of indexed titles on ${brandName} to find your next cinematic experience.`;
   }
 
-  // Convert SVG to Base64 for favicon
-  const base64Svg = Buffer.from(svg).toString('base64');
   let result = html;
 
   // Replace Title
@@ -221,13 +219,17 @@ async function injectDynamicSEO(html: string, host: string, urlPath: string): Pr
   `;
   result = result.replace('</head>', `  ${ogTags}\n</head>`);
 
-  // Inject/replace favicon
-  const faviconTag = `<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,${base64Svg}" />`;
-  if (result.includes('rel="icon"') || result.includes('rel=icon')) {
-    result = result.replace(/<link\s+rel="[^]*?icon"\s+[^>]*?\/?>/gi, faviconTag);
-  } else {
-    result = result.replace('</head>', `  ${faviconTag}\n</head>`);
+  // Inject/replace favicon with stable, crawlable URLs (Google explicitly forbids base64 data URIs)
+  const faviconTag = `
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" href="/favicon.svg" />
+  `;
+  if (result.includes('rel="icon"') || result.includes('rel=icon') || result.includes('rel="shortcut icon"')) {
+    result = result.replace(/<link\s+rel="[^]*?icon"\s+[^>]*?\/?>/gi, '');
+    result = result.replace(/<link\s+rel="shortcut\s+icon"\s+[^>]*?\/?>/gi, '');
   }
+  result = result.replace('</head>', `  ${faviconTag}\n</head>`);
 
   // Inject Schema.org Rich Snippet JSON-LD
   if (jsonLd) {
@@ -582,8 +584,8 @@ app.get('/sitemap.xml', (req, res) => {
   return res.send(sitemap.trim());
 });
 
-// Dynamic /favicon.ico handler for search engines and direct requests!
-app.get('/favicon.ico', (req, res) => {
+// Dynamic /favicon.ico and /favicon.svg handler for search engines and direct requests!
+app.get(['/favicon.ico', '/favicon.svg'], (req, res) => {
   const host = req.get('host') || '';
   const brand = getBrandFromHost(host);
   
