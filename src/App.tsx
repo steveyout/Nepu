@@ -259,6 +259,14 @@ export default function App() {
           console.error('Initial deep link fetch error:', err);
           setLoadingCollections(false);
         });
+    } else if (path.startsWith('/movies')) {
+      setActiveTab('movies');
+    } else if (path.startsWith('/shows')) {
+      setActiveTab('shows');
+    } else if (path.startsWith('/saved')) {
+      setActiveTab('saved');
+    } else if (path.startsWith('/search')) {
+      setActiveTab('search');
     }
 
     const handlePopState = (e: PopStateEvent) => {
