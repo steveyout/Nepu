@@ -52,11 +52,8 @@ export default function FeaturedHero({
 
       {/* Hero Content Grid */}
       <div className="relative z-10 w-full px-6 sm:px-12 py-10 sm:py-16 grid grid-cols-1 md:grid-cols-12 gap-8 items-end">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, type: 'spring' }}
-          className="md:col-span-8 flex flex-col items-start text-white"
+        <div
+          className="md:col-span-8 flex flex-col items-start text-white animate-fade-in-up"
         >
           {/* Trending Tag Group matching Immersive UI spec */}
           <div className="flex flex-wrap gap-2 text-[10px] font-extrabold uppercase tracking-widest mb-4 font-mono">
@@ -130,7 +127,7 @@ export default function FeaturedHero({
               )}
             </button>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

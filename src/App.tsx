@@ -449,7 +449,7 @@ export default function App() {
 
       {/* Main viewport */}
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 py-6 md:py-10 pb-28 md:pb-12">
-        <AnimatePresence mode="wait">
+        <AnimatePresence initial={false} mode="wait">
           
           {/* PLAYER SCREEN */}
           {activeTab === 'player' && selectedMedia && (
