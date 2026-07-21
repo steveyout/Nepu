@@ -9,6 +9,7 @@ import MediaSlider from './components/MediaSlider';
 import MediaCard from './components/MediaCard';
 import WatchPlayer from './components/WatchPlayer';
 import { getBrand, getBrandConfig } from './utils/brand';
+import { mockMovies, mockShows, mockAll } from './mock_db';
 
 const GENRES_MAP: Record<number, string> = {
   12: 'Adventure',
@@ -35,9 +36,9 @@ export default function App() {
   const brandConfig = useMemo(() => getBrandConfig(brand), [brand]);
 
   // Media Collections
-  const [trendingList, setTrendingList] = useState<MediaItem[]>([]);
-  const [popularMovies, setPopularMovies] = useState<MediaItem[]>([]);
-  const [popularShows, setPopularShows] = useState<MediaItem[]>([]);
+  const [trendingList, setTrendingList] = useState<MediaItem[]>(mockAll);
+  const [popularMovies, setPopularMovies] = useState<MediaItem[]>(mockMovies);
+  const [popularShows, setPopularShows] = useState<MediaItem[]>(mockShows);
   const [searchResults, setSearchResults] = useState<MediaItem[]>([]);
 
   // Selection states
@@ -47,7 +48,7 @@ export default function App() {
   const [selectedGenreId, setSelectedGenreId] = useState<number>(0);
 
   // Loading States
-  const [loadingCollections, setLoadingCollections] = useState<boolean>(true);
+  const [loadingCollections, setLoadingCollections] = useState<boolean>(false);
   const [loadingSearch, setLoadingSearch] = useState<boolean>(false);
 
   // Bookmarks Watchlist - Loaded from localStorage
@@ -157,16 +158,19 @@ export default function App() {
 
   // Fetch collections on Mount
   useEffect(() => {
-    setLoadingCollections(true);
+    // Only show loading indicator if we don't have any data yet
+    if (trendingList.length === 0) {
+      setLoadingCollections(true);
+    }
     Promise.all([
       fetch('/api/trending').then((res) => res.json()),
       fetch('/api/popular?type=movie').then((res) => res.json()),
       fetch('/api/popular?type=tv').then((res) => res.json()),
     ])
       .then(([trendingData, popMoviesData, popShowsData]) => {
-        setTrendingList(trendingData || []);
-        setPopularMovies(popMoviesData || []);
-        setPopularShows(popShowsData || []);
+        if (trendingData && trendingData.length > 0) setTrendingList(trendingData);
+        if (popMoviesData && popMoviesData.length > 0) setPopularMovies(popMoviesData);
+        if (popShowsData && popShowsData.length > 0) setPopularShows(popShowsData);
         setLoadingCollections(false);
       })
       .catch((err) => {
@@ -483,7 +487,7 @@ export default function App() {
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col"
             >
-              {loadingCollections ? (
+              {loadingCollections && trendingList.length === 0 ? (
                 /* Sleek animated skeletons */
                 <div className="flex flex-col gap-10 py-10">
                   <div className="w-full h-[400px] rounded-3xl bg-neutral-900/40 animate-pulse border border-white/5" />

@@ -35,6 +35,8 @@ export default function FeaturedHero({
         <img
           src={item.backdrop_path}
           alt={item.title || item.name}
+          fetchPriority="high"
+          loading="eager"
           className="w-full h-full object-cover opacity-65 md:opacity-75 scale-100 animate-fade-in"
           referrerPolicy="no-referrer"
           onError={(e) => {
