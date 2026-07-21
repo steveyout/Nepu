@@ -28,7 +28,7 @@ export default function FeaturedHero({
   return (
     <div
       id={`hero-showcase-${item.id}`}
-      className="relative w-full min-h-[500px] lg:min-h-[620px] rounded-3xl overflow-hidden flex items-end mb-8 md:mb-12 bg-neutral-950"
+      className="relative w-full min-h-[500px] lg:min-h-[620px] rounded-3xl overflow-hidden flex items-end mb-8 md:mb-12 bg-neutral-900 bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 border border-white/5 shadow-2xl"
     >
       {/* Background Backdrop Image */}
       <div className="absolute inset-0">

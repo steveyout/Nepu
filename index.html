@@ -55,7 +55,10 @@
     <link rel="dns-prefetch" href="https://image.tmdb.org" />
     
     <!-- Parallel loading of fonts to avoid render-blocking CSS imports -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'" />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    </noscript>
     
     <!-- SEO Optimization: Sitemap linkage -->
     <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />

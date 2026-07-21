@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import compression from 'compression';
 import { createServer as createViteServer } from 'vite';
 import { mockMovies, mockShows, mockAll, getMockCast, getMockVideos, getMockSeasonDetails } from './src/mock_db';
 
@@ -9,6 +10,10 @@ import { mockMovies, mockShows, mockAll, getMockCast, getMockVideos, getMockSeas
 dotenv.config();
 
 const app = express();
+
+// Enable Gzip compression to significantly improve page load metrics (FCP, LCP) on slower networks
+app.use(compression());
+
 const PORT = Number(process.env.PORT) || 3000;
 const TMDB_API_KEY = process.env.TMDB_API_KEY || '';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
@@ -605,6 +610,9 @@ app.get(['/favicon.ico', '/favicon.svg'], (req, res) => {
   res.send(svg);
 });
 
+// In-memory cache for production index.html to avoid disk reads on every request
+let cachedProductionHtml: string | null = null;
+
 // Dynamic Document Requests Handler for SSR and Rich Snippets!
 async function handleDocumentRequest(req: express.Request, res: express.Response, viteInstance?: any) {
   const host = req.get('host') || 'localhost:3000';
@@ -619,10 +627,15 @@ async function handleDocumentRequest(req: express.Request, res: express.Response
         html = await viteInstance.transformIndexHtml(req.originalUrl, html);
       }
     } else {
-      const distPath = path.join(process.cwd(), 'dist');
-      const indexPath = path.join(distPath, 'index.html');
-      if (fs.existsSync(indexPath)) {
-        html = fs.readFileSync(indexPath, 'utf8');
+      if (cachedProductionHtml) {
+        html = cachedProductionHtml;
+      } else {
+        const distPath = path.join(process.cwd(), 'dist');
+        const indexPath = path.join(distPath, 'index.html');
+        if (fs.existsSync(indexPath)) {
+          html = fs.readFileSync(indexPath, 'utf8');
+          cachedProductionHtml = html;
+        }
       }
     }
 
@@ -664,8 +677,12 @@ async function startServer() {
     });
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    // Serves static files, but index.html is bypassed to run dynamic SEO meta-tags injection
-    app.use(express.static(distPath, { index: false }));
+    // Serves static files with aggressive caching (1 year max age and immutable) since assets are hashed, bypassing index.html
+    app.use(express.static(distPath, {
+      index: false,
+      maxAge: '31536000s',
+      immutable: true,
+    }));
     app.get('*', async (req, res) => {
       await handleDocumentRequest(req, res);
     });
