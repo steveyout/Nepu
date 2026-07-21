@@ -96,7 +96,7 @@ export default function MediaCard({
       {/* Card Image Wrapper */}
       <div className="relative aspect-[2/3] overflow-hidden bg-neutral-900">
         <img
-          src={item.poster_path}
+          src={item.poster_path ? item.poster_path.replace('/w500/', '/w342/') : ''}
           alt={item.title || item.name}
           loading="lazy"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"

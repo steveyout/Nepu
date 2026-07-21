@@ -680,7 +680,7 @@ async function startServer() {
     // Serves static files with aggressive caching (1 year max age and immutable) since assets are hashed, bypassing index.html
     app.use(express.static(distPath, {
       index: false,
-      maxAge: '31536000s',
+      maxAge: '1y',
       immutable: true,
     }));
     app.get('*', async (req, res) => {

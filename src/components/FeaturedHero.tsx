@@ -33,7 +33,7 @@ export default function FeaturedHero({
       {/* Background Backdrop Image */}
       <div className="absolute inset-0">
         <img
-          src={item.backdrop_path}
+          src={item.backdrop_path ? item.backdrop_path.replace('/original/', '/w1280/') : ''}
           alt={item.title || item.name}
           fetchPriority="high"
           loading="eager"

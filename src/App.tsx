@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, Sparkles, FolderHeart, History, Film, Tv, ListFilter, Trash2, X } from 'lucide-react';
 import { MediaItem, UserBookmark, WatchProgress } from './types';
@@ -327,7 +327,7 @@ export default function App() {
     }
   };
 
-  const handleTrackProgress = (progress: {
+  const handleTrackProgress = useCallback((progress: {
     id: number;
     media_type: 'movie' | 'tv';
     title: string;
@@ -351,7 +351,7 @@ export default function App() {
       };
       return [newProgress, ...filtered].slice(0, 10); // store top 10 items
     });
-  };
+  }, []);
 
   const handleResumePlayback = (progress: WatchProgress) => {
     // Find the full media item from lists or build a quick shell to load details

@@ -263,7 +263,7 @@ export default function WatchPlayer({
                 onClick={() => setIsPlaying(true)}
               >
                 <img
-                  src={item.backdrop_path || item.poster_path}
+                  src={item.backdrop_path ? item.backdrop_path.replace('/original/', '/w1280/') : (item.poster_path ? item.poster_path.replace('/w500/', '/w342/') : '')}
                   alt={item.title || item.name}
                   className="w-full h-full object-cover opacity-60 group-hover:opacity-50 group-hover:scale-105 transition-all duration-500"
                   referrerPolicy="no-referrer"
@@ -585,12 +585,12 @@ export default function WatchPlayer({
                                 {/* Ep Thumbnail or number */}
                                 <div className="relative w-20 aspect-video rounded-md overflow-hidden bg-neutral-950 shrink-0">
                                   <img
-                                    src={ep.still_path}
+                                    src={ep.still_path ? ep.still_path.replace('/w500/', '/w185/') : ''}
                                     alt={ep.name}
                                     className="w-full h-full object-cover"
                                     referrerPolicy="no-referrer"
                                     onError={(e) => {
-                                      (e.target as HTMLImageElement).src = item.backdrop_path;
+                                      (e.target as HTMLImageElement).src = item.backdrop_path ? item.backdrop_path.replace('/original/', '/w342/') : '';
                                     }}
                                   />
                                   {isCurrent && (
@@ -698,7 +698,7 @@ export default function WatchPlayer({
                             className="cursor-pointer group relative aspect-[2/3] rounded-xl overflow-hidden bg-neutral-950 border border-neutral-800"
                           >
                             <img
-                              src={rec.poster_path}
+                              src={rec.poster_path ? rec.poster_path.replace('/w500/', '/w185/') : ''}
                               alt={rec.title || rec.name}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               referrerPolicy="no-referrer"
